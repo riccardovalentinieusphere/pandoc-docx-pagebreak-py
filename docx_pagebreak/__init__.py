@@ -51,12 +51,33 @@ class DocxPagebreak(object):
             # Gestione \toc
             elif text == "<!--\\toc-->":
                 if doc.format == "docx":
-                    pf.debug("Indice")
-                    div = pf.Div(
+                    pf.debug("Costruzione Indice con indentazione")
+            
+                    # Intestazione "Indice"
+                    heading = pf.Div(
                         pf.Para(pf.Str("Indice")),
                         attributes={"custom-style": "TOC Heading"}
                     )
-                    return [div, self.toc]
+            
+                    # Generazione voci TOC con indentazione basata sul livello
+                    toc_paras = []
+                    for voce in self.toc:                # self.toc → lista di dict: {'level', 'text', 'url'}
+                        livello = voce['level']         # es. 1, 2, 3…
+                        testo   = voce['text']
+                        link    = voce.get('url')
+            
+                        # Applico lo stile custom “TOC 1”, “TOC 2”, … “TOC n”
+                        nome_stile = f"TOC {livello}"
+                        contenuto = pf.Link(pf.Str(testo), url=link) if link else pf.Str(testo)
+            
+                        para = pf.Para(
+                            contenuto,
+                            attributes={"custom-style": nome_stile}
+                        )
+                        toc_paras.append(para)
+            
+                    # Ritorno prima l’intestazione, poi le voci indentate
+                    return [heading] + toc_paras
 
             # Gestione commenti generici per il titolo
             elif text.startswith("<!") and text.endswith(">"):
