@@ -69,8 +69,9 @@ class DocxPagebreak(object):
 
     def finalize(self, doc):
         if self.title:
-            header = pf.Header(pf.Str(self.title), level=1)
-            doc.content.insert(0, header)
+            para = pf.Para(pf.Str(self.title))
+            styled_para = pf.Div(para, attributes={"custom-style": "Title"})
+            doc.content.insert(0, styled_para)
 
 
 def main(doc=None):
