@@ -39,26 +39,34 @@ class DocxPagebreak(object):
         self.title = None
 
     def action(self, elem, doc):
-        if isinstance(elem, pf.RawBlock):
-            text = elem.text.strip()
-            if text.startswith("<!") and text.endswith(">"):
-                if "title:" in text:
-                    pf.debug("Title block detected")
-                    match = re.search(r"title:\s*(.+)", text)
-                    if match:
-                        self.title = match.group(1).strip()
-                    return []  # Rimuove il blocco commentato
-            elif elem.text == r"<!--\newpage-->":
-                if doc.format == "docx":
-                    pf.debug("Page Break")
-                    return self.pagebreak
-            elif elem.text == r"<!--\toc-->":
-                if doc.format == "docx":
-                    pf.debug("Table of Contents")
-                    para = [pf.Para(pf.Str("Table"), pf.Space(), pf.Str("of"), pf.Space(), pf.Str("Contents"))]
-                    div = pf.Div(*para, attributes={"custom-style": "TOC Heading"})
-                    return [div, self.toc]
-        return elem
+    if isinstance(elem, pf.RawBlock):
+        text = elem.text.strip()
+        
+        # Gestione \newpage
+        if text == "<!--\\newpage-->":
+            if doc.format == "docx":
+                pf.debug("Page Break")
+                return self.pagebreak
+        
+        # Gestione \toc
+        elif text == "<!--\\toc-->":
+            if doc.format == "docx":
+                pf.debug("Table of Contents")
+                para = [pf.Para(pf.Str("Table"), pf.Space(), pf.Str("of"), pf.Space(), pf.Str("Contents"))]
+                div = pf.Div(*para, attributes={"custom-style": "TOC Heading"})
+                return [div, self.toc]
+        
+        # Gestione commenti generici per il titolo
+        elif text.startswith("<!") and text.endswith(">"):
+            if "title:" in text:
+                pf.debug("Title block detected")
+                match = re.search(r"title:\s*(.+)", text)
+                if match:
+                    self.title = match.group(1).strip()
+                return []  # Rimuove il blocco commentato
+        
+    return elem
+
 
     def finalize(self, doc):
         if self.title:
