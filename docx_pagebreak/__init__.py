@@ -12,6 +12,7 @@ import re
 
 
 class DocxPagebreak(object):
+    # Definizione dei RawBlock per page break, section break e TOC
     pagebreak = pf.RawBlock(
         "<w:p><w:r><w:br w:type=\"page\" /></w:r></w:p>",
         format="openxml"
@@ -39,55 +40,60 @@ class DocxPagebreak(object):
         self.title = None
 
     def action(self, elem, doc):
+        # Solo RawBlock per gestire i commenti speciali
         if isinstance(elem, pf.RawBlock):
             text = elem.text.strip()
 
-            # Gestione \newpage
+            # 1) Gestione del comando <!--\newpage-->
             if text == "<!--\\newpage-->":
                 if doc.format == "docx":
                     pf.debug("Page Break")
                     return self.pagebreak
 
-            # Gestione \toc
+            # 2) Gestione del comando <!--\toc-->
             elif text == "<!--\\toc-->":
                 if doc.format == "docx":
                     pf.debug("Costruzione Indice")
-            
+
                     # Intestazione “Indice” con stile TOC Heading
                     heading = pf.Div(
                         pf.Para(pf.Str("Indice")),
                         attributes={"custom-style": "TOC Heading"}
                     )
-            
-                    # Inserisco il campo TOC OpenXML; Word applicherà TOC 1, TOC 2, … per l’indentazione
+
+                    # Inserisco il campo TOC OpenXML;
+                    # Word applicherà automaticamente TOC 1, TOC 2, … per l’indentazione
                     return [heading, self.toc]
 
-            # Gestione commenti generici per il titolo
+            # 3) Gestione dei blocchi commentati per il titolo
             elif text.startswith("<!") and text.endswith(">"):
                 if "title:" in text:
                     pf.debug("Title block detected")
                     match = re.search(r"title:\s*(.+)", text)
                     if match:
                         self.title = match.group(1).strip()
-                    return []  # Rimuove il blocco commentato
+                    # Rimuove il blocco commentato dal flusso
+                    return []
 
+        # Rimozione di header H1 in output DOCX (se non gestiti diversamente)
         elif isinstance(elem, pf.Header):
             if doc.format == "docx" and elem.level == 1:
                 pf.debug("Removing H1 in docx")
-                return []  # Elimina completamente l'H1
+                return []
+
+        # Tutti gli altri elementi passano inalterati
         return elem
 
     def finalize(self, doc):
+        # Se è stato specificato un titolo tramite commento, lo inietto in testa
         if self.title:
             para = pf.Para(pf.Str(self.title))
             styled_para = pf.Div(para, attributes={"custom-style": "Title"})
             doc.content.insert(0, styled_para)
 
-
 def main(doc=None):
     dp = DocxPagebreak()
     return pf.run_filter(dp.action, prepare=None, finalize=dp.finalize, doc=doc)
-
 
 if __name__ == "__main__":
     main()
