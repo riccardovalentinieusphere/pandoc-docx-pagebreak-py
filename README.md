@@ -40,13 +40,3 @@ Contents before pagebreak
 
 Contents after _Page Break_
 ```
-
-Table of contents appears after this line
-
-\toc
-
-Contents before pagebreak
-
-\newpage
-
-Contents after _Page Break_
