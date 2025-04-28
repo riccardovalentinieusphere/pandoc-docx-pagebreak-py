@@ -65,6 +65,10 @@ class DocxPagebreak(object):
                         self.title = match.group(1).strip()
                     return []  # Rimuove il blocco commentato
 
+        elif isinstance(elem, pf.Header):
+            if doc.format == "docx" and elem.level == 1:
+                pf.debug("Removing H1 in docx")
+                return []  # Elimina completamente l'H1
         return elem
 
     def finalize(self, doc):
