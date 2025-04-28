@@ -33,7 +33,7 @@ class DocxPagebreak(object):
 
     def action(self, elem, doc):
         if isinstance(elem, pf.RawBlock):
-            if elem.text == r"\newpage":
+            if elem.text == r"<!--\newpage-->":
                 if (doc.format == "docx"):
                     pf.debug("Page Break")
                     elem = self.pagebreak
@@ -43,7 +43,7 @@ class DocxPagebreak(object):
             #         elem = self.sectionbreak
             #     else:
             #         elem = []
-            elif elem.text == r"\toc":
+            elif elem.text == r"<!--\toc-->":
                 if (doc.format == "docx"):
                     pf.debug("Table of Contents")
                     para = [pf.Para(pf.Str("Table"), pf.Space(), pf.Str("of"), pf.Space(), pf.Str("Contents"))]
