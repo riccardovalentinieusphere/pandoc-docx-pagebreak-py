@@ -3,11 +3,12 @@
 
 """
 pandoc-docx-pagebreakpy
-Pandoc filter to insert pagebreak, sectionbreak and title as openxml RawBlock
-Only for docx output
+Gestisce pagebreak, toc e title da blocchi commentati
+Compatibile con blocchi multilinea tipo <!--- ... --->
 """
 
 import panflute as pf
+import re
 
 
 class DocxPagebreak(object):
@@ -39,11 +40,14 @@ class DocxPagebreak(object):
 
     def action(self, elem, doc):
         if isinstance(elem, pf.RawBlock):
-            if elem.text.startswith('<!-- title:'):
-                if doc.format == "docx":
-                    pf.debug("Title detected")
-                    self.title = elem.text.replace('<!-- title:', '').replace('-->', '').strip()
-                    return []
+            text = elem.text.strip()
+            if text.startswith("<!") and text.endswith(">"):
+                if "title:" in text:
+                    pf.debug("Title block detected")
+                    match = re.search(r"title:\s*(.+)", text)
+                    if match:
+                        self.title = match.group(1).strip()
+                    return []  # Rimuove il blocco commentato
             elif elem.text == r"<!--\newpage-->":
                 if doc.format == "docx":
                     pf.debug("Page Break")
