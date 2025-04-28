@@ -51,9 +51,11 @@ class DocxPagebreak(object):
             # Gestione \toc
             elif text == "<!--\\toc-->":
                 if doc.format == "docx":
-                    pf.debug("Table of Contents")
-                    para = [pf.Para(pf.Str("Table"), pf.Space(), pf.Str("of"), pf.Space(), pf.Str("Contents"))]
-                    div = pf.Div(*para, attributes={"custom-style": "TOC Heading"})
+                    pf.debug("Indice")
+                    div = pf.Div(
+                        pf.Para(pf.Str("Indice")),
+                        attributes={"custom-style": "TOC Heading"}
+                    )
                     return [div, self.toc]
 
             # Gestione commenti generici per il titolo
