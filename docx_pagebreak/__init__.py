@@ -41,13 +41,13 @@ class DocxPagebreak(object):
     def action(self, elem, doc):
         if isinstance(elem, pf.RawBlock):
             text = elem.text.strip()
-            
+
             # Gestione \newpage
             if text == "<!--\\newpage-->":
                 if doc.format == "docx":
                     pf.debug("Page Break")
                     return self.pagebreak
-            
+
             # Gestione \toc
             elif text == "<!--\\toc-->":
                 if doc.format == "docx":
@@ -55,7 +55,7 @@ class DocxPagebreak(object):
                     para = [pf.Para(pf.Str("Table"), pf.Space(), pf.Str("of"), pf.Space(), pf.Str("Contents"))]
                     div = pf.Div(*para, attributes={"custom-style": "TOC Heading"})
                     return [div, self.toc]
-            
+
             # Gestione commenti generici per il titolo
             elif text.startswith("<!") and text.endswith(">"):
                 if "title:" in text:
@@ -64,9 +64,8 @@ class DocxPagebreak(object):
                     if match:
                         self.title = match.group(1).strip()
                     return []  # Rimuove il blocco commentato
-            
-    return elem
 
+        return elem
 
     def finalize(self, doc):
         if self.title:
